@@ -45,7 +45,6 @@ async def create_upload_files(files: List[UploadFile] = File(...)):
           shutil.make_archive("transcribed_docs","zip","documents")
           return FileResponse("transcribed_docs.zip")
 
-
     df = json_data_extraction(result,fname)
     print('saving transcript...')
 
