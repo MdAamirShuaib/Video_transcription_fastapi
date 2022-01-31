@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap');
+
+h1 {
+  color: white;
+  text-align: center;
+  font-family: Montserrat, sans-serif;
+
+}
+
+h2 {
+  color: black;
+  font-family: "Courier New", Monospace;
+}
+
+body {
+  background-color: #330c53;
+}
+
+.head {
+  margin: auto;
+  max-width: 35%;
+  border: 3px solid white;
+  border-radius: 25px;
+  background-color: #330c53;
+}
+
+.upload-box {
+  font-size: 16px;
+  background: white;
+  border-radius: 50px;
+  box-shadow: 5px 5px 10px black;
+  width: 240px;
+  outline: none;
+}
+
+::-webkit-file-upload-button{
+  color: white;
+  background: #09b794;
+  padding: 10px;
+  border: none;
+  border-radius: 50px;
+  box-shadow: 1px 0 1px 1px #6b4559;
+  outline: none;
+}
+
+
+.btn {
+  border: 2px solid white;
+  color: white;
+  background-color: #09b794;
+  padding: 6px 16px;
+  border-radius: 150px;
+  box-shadow: 5px 5px 10px black;
+  font-size: 16px;
+  font-weight: bold;
+}
