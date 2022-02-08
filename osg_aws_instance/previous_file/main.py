@@ -19,20 +19,14 @@ import boto3
 app = FastAPI()
 
 # Global variables
-
+dir_name = str(uuid.uuid4())
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
+log_list = []
 s3 = boto3.client('s3')
-
-def startup():
-  global dir_name, log_list
-  dir_name = str(uuid.uuid4())
-  log_list = []
-
 
 @app.get('/', response_class=HTMLResponse)
 async def file_temp(request: Request):
-  startup()
   return templates.TemplateResponse("webpage.html", {'request': request})
 
 
