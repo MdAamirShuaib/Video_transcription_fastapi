@@ -11,7 +11,6 @@
     <div class="logo" align="center">
       <br/><br/><br/><br/><br/>
       <img src="static/osg_logo.jpg" height="100">
-
     </div>
     <br/><br/><br/><br/>
     <div class="head" align ="center"><br/>
@@ -19,9 +18,16 @@
       <h2>
         <form enctype="multipart/form-data" method="post" align="center">
           <input name="files" class="upload-box" type="file" multiple>
-          <button type=submit class="btn" >
+          <button type=submit class="btn" onclick="">
             <span class="btn_text">Transcribe</span>
           </button>
+          <script>
+            btn_ = document.querySelector(".btn_text");
+            btn_.onclick = function() {
+              this.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; transcribing..."
+              this.classList.toggle('btn_loading')
+            }
+          </script>
       </h2>
       <br/>
     </div>

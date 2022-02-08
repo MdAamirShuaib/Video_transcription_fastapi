@@ -1,5 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, Request
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 import uvicorn
@@ -12,70 +12,76 @@ import requests
 from transcribe import *
 from assemblyai_data_extraction import json_data_extraction
 from typing import List
+import uuid
+from html_content import *
+import boto3
 
 app = FastAPI()
 
+# Global variables
+dir_name = str(uuid.uuid4())
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
+log_list = []
+s3 = boto3.client('s3')
+
 @app.get('/', response_class=HTMLResponse)
 async def file_temp(request: Request):
-  return templates.TemplateResponse("webpage.html", {'request': request})
+  return HTMLResponse(content=html_webpage_content(), status_code=200)
 
 
-@app.post("/")
-async def create_upload_files(files: List[UploadFile] = File(...)):
-
-  for i in os.listdir("documents/"):
-    os.remove("documents/"+i)
-
-  if "transcribed_docs.zip" in os.listdir():
-    os.remove("transcribed_docs.zip")
-
-  log_file = open("documents/logs.txt", 'w')
-  log_file.write("Please find the logs for your transcription below: \n\n")
-  log_file.close()
-
-  logs = open("documents/logs.txt","a")
-  logs.write("Files uploaded:\n")
-  for i in files:
-    logs.write(i.filename+"\n")
-
-  logs.write("\n\n")
+@app.post("/", response_class=HTMLResponse)
+async def create_upload_files(*,files: List[UploadFile] = File(...), request: Request):
 
   for file in files:
-    token = "a788369fef274a0393624e2fc7a9a70a"
+    if file.filename == "":
+      wc = "No Files Uploaded"
+      log_list.append("No files were uploaded")
+      return HTMLResponse(content=html_page_download(wc), status_code=200)
+
+  os.makedirs('documents/'+dir_name)
+  wc = ""
+
+  log_list.append("Please find the logs for your transcription below:<br><br>")
+  log_list.append("Files Uploaded: <br><br>")
+
+  for i in files:
+    log_list.append(i.filename+"<br>")
+
+  for file in files:
+    token = "d3b6f15c585b4a1bbf43f20f60535185"
     fname = file.filename
 
     tid = upload_file(token,file.file)
     result = {}
-    logs.write('starting to transcribe the file:'+fname+"\n")
+    log_list.append("starting to transcribe the file:"+fname+"<br>")
     print('starting to transcribe the file: [ {} ]'.format(fname))
     while result.get("status") != 'completed':
         print(result.get("status"))
         result = get_text(token, tid)
         # Handeling Errors
         if result.get("status") == 'error':
-          logs.write('Error occured while transcribing the file :'+fname+"\n")
-          logs.close()
-          shutil.make_archive("transcribed_docs","zip","documents")
-          return FileResponse("transcribed_docs.zip")
+          log_list.append("Error occured while transcribing the file :"+fname+"<br>")
+          shutil.make_archive("documents/"+dir_name,"zip","documents/"+dir_name)
+          wc = wc+"<img src='/static/error.jpg' height='20'>&nbsp;&nbsp;Error &nbsp;:&nbsp;"+fname+"<br><br>"
+          s3.upload_file("documents/"+dir_name+".zip","video-transcription-file-sharing","transcriptions/"+dir_name+".zip")
+          os.remove("documents/"+dir_name+".zip")
+          shutil.rmtree("documents/"+dir_name)
+          return HTMLResponse(content=html_page_download(wc), status_code=200)
 
-    logs.write('Transcription Completed for the file:'+fname+"\n")
-
+    log_list.append("Transcription Completed for the file:"+fname+"<br>")
     df = json_data_extraction(result,fname)
     print('saving transcript...')
-    logs.write('Saving the transcription of the file :'+fname+"\n")
+    log_list.append("Saving the transcription of the file :"+fname+"<br>")
 
     df = df[['spcode','utter']]
 
     print('Converting files')
-    logs.write('Converting into document file:'+fname+"\n")
+    log_list.append("Converting into document file:"+fname+"<br>")
 
     # open an existing document
     doc = docx.Document()
 
-    # add a table to the end and create a reference variable
-    # extra row is so we can add the header row
     t = doc.add_table(df.shape[0]+1, df.shape[1])
 
     # add the header rows.
@@ -88,10 +94,23 @@ async def create_upload_files(files: List[UploadFile] = File(...)):
             t.cell(i+1,j).text = str(df.values[i,j])
 
     print('saving transcript...')
-    logs.write('Saving the document file:'+fname+"\n\n\n")
-    doc.save("documents/"+fname+".docx")
+    log_list.append("Saving the document file:"+fname+"<br><br><br>")
+    doc.save("documents/"+dir_name+"/"+fname+".docx")
+    wc = wc+"<img src='/static/success.jpg' height='20'>&nbsp;&nbsp;Completed &nbsp;:&nbsp;"+fname+"<br><br>"
 
-  logs.write('Zipping all the transcribed documents and preparing to download')
-  logs.close()
-  shutil.make_archive("transcribed_docs","zip","documents")
-  return FileResponse("transcribed_docs.zip")
+  log_list.append("Zipping all the transcribed documents and preparing to download")
+  shutil.make_archive("documents/"+dir_name,"zip","documents/"+dir_name)
+  s3.upload_file("documents/"+dir_name+".zip","video-transcription-file-sharing","transcriptions/"+dir_name+".zip")
+  os.remove("documents/"+dir_name+".zip")
+  shutil.rmtree("documents/"+dir_name)
+  return HTMLResponse(content=html_page_download(wc), status_code=200)
+
+@app.get('/download')
+async def download():
+  zip_url = boto3.client('s3').generate_presigned_url(ClientMethod='get_object', Params={'Bucket': 'video-transcription-file-sharing', 'Key': "transcriptions/"+dir_name+".zip"},ExpiresIn=360)
+  return RedirectResponse(zip_url)
+
+@app.get('/logs')
+async def logs():
+  logs = "".join(log_list)
+  return HTMLResponse(content=html_page_logs(logs), status_code=200)

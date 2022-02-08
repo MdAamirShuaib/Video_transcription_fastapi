@@ -1,16 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <title>Download Files</title>
-</head>
-<body>
-  <form>
-    <input type="file" id="file">
-    <a href="transcribed_docs.zip" download="transcribed_docs.zip">
-      <input type="button" value="Download Files">
-    <a>
-    <a href="requirements.txt" download="requrements.txt"><input type="button" value="Download"></a>
-    <input type="color" id="color">
-  </form> 
-</body>
+  <head>
+    <link rel="stylesheet" href="{{ url_for('static', path='/download.css') }}">
+    <title>
+      OSG - Video Transcription Tool
+    </title>
+  </head>
+  <meta charset="utf-8">
+  <body>
+    <div class="logo" align="center">
+      <br/><br/><br/><br/><br/>
+      <img src="/static/osg_logo.jpg" height="100">
+    </div>
+    <br/><br/><br/><br/>
+    <div class="head" align ="center"><br/>
+      <h1>Video Transcription Tool</h1>
+      <p>
+        <a href="download" download class="download-btn">Download Transcribed Documents</a>
+        <br>
+        <a href="logs" class="logs-btn">Logs</a>
+      </p>
+    </div>
+  </body>
 </html>
