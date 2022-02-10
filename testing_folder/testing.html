@@ -58,7 +58,7 @@ body {
   color: #330c53;
   background-color: #09b794;
   padding: 10px 25px;
-  border-radius: 15px;
+  border-radius: 150px;
   box-shadow: 5px 5px 10px black; 
   overflow: hidden;
   font-family: Montserrat, sans-serif;
@@ -94,6 +94,7 @@ body {
 
 </style>
   <head>
+    <link rel="stylesheet" href="{{ url_for('static', path='/main.css') }}">
     <title>
       OSG - Video Transcription Tool
     </title>
@@ -102,7 +103,7 @@ body {
   <body>
     <div class="logo" align="center">
       <br/><br/><br/><br/><br/>
-      <img src="/static/osg_logo.jpg" height="100">
+      <img src="osg_logo.jpg" height="100">
     </div>
     <br/><br/><br/><br/>
     <div class="head" align ="center"><br/>

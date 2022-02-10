@@ -9,8 +9,7 @@ h3 {
   font-family: Montserrat, sans-serif;
 }
 
-p {
-  margin-left: 33.33%;
+.content {
   color: white;
   font-family: Montserrat, sans-serif;
 }
@@ -42,6 +41,10 @@ body {
 
 .logs-btn {
   color: white;
+  padding: 7px;
+  cursor: pointer;
+  font-family: Montserrat, sans-serif;
+  font-size: 16px;
 }
 
 
